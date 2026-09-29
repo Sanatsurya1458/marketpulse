@@ -16,6 +16,7 @@
 
 from google.adk.agents import Agent
 from google.adk.apps import App
+from google.adk.code_executors import AgentEngineSandboxCodeExecutor
 from google.adk.models import Gemini
 from google.genai import types
 
@@ -35,6 +36,10 @@ from .intelligence_tools import (
 from .scanner_tools import scan_local_codebase, scan_website_url
 
 MODEL = "gemini-2.5-flash"
+SANDBOX_RESOURCE_NAME = "projects/307546545107/locations/us-east1/reasoningEngines/3336127185881661440/sandboxEnvironments/7972013455236399104"
+
+# Code executor backed by Agent Platform sandbox
+code_executor = AgentEngineSandboxCodeExecutor(sandbox_resource_name=SANDBOX_RESOURCE_NAME)
 
 # ==========================================
 # Specialized Sub-Agents
@@ -79,10 +84,11 @@ analyst_agent = Agent(
         "You are the Market Intelligence & Growth Analyst specialist for MarketPulse. "
         "You gather live competitor search insights and SERP messaging trends (via search_competitor_serp), "
         "fetch real-time market trends, viral discussions, and developer sentiment (via fetch_industry_trends), "
-        "and perform financial ROI, CAC, and conversion funnel simulations (via simulate_campaign_roi) "
-        "to give data-driven budget allocation advice."
+        "and perform financial ROI, CAC, and conversion funnel simulations (via simulate_campaign_roi). "
+        "You can also write and execute Python code in your secure Agent Engine sandbox to perform complex calculations."
     ),
     tools=[search_competitor_serp, fetch_industry_trends, simulate_campaign_roi],
+    code_executor=code_executor,
 )
 
 # ==========================================
@@ -92,6 +98,7 @@ analyst_agent = Agent(
 ROOT_INSTRUCTION = """You are MarketPulse, an autonomous digital marketing strategist agent.
 You orchestrate specialized capabilities to help users grow their business, scan their product or website,
 manage marketing campaigns, generate ad copy variations, and create visual ad assets.
+You can safely run Python code calculations in a secure Agent Engine sandbox.
 
 When appropriate to present campaigns, product summaries, or creative banners visually, emit A2UI v0.8 components:
 Keep every surface flat and clean: ONE Card > ONE Column > Text and Row components.
@@ -170,6 +177,7 @@ root_agent = Agent(
         fetch_industry_trends,
         simulate_campaign_roi,
     ],
+    code_executor=code_executor,
     sub_agents=[profiler_agent, creative_agent, analyst_agent],
     after_model_callback=a2ui_callback,
 )
