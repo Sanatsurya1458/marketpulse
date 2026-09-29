@@ -160,3 +160,86 @@ def generate_ad_creative(
             "error": f"Failed to generate ad creative: {str(e)}",
             "campaign_id": campaign_id,
         }
+
+
+def generate_campaign_image(
+    prompt: str,
+    campaign_id: str = "general",
+    tool_context: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Generates a marketing visual or product creative using gemini-3.1-flash-lite-image.
+
+    Saves the generated image as an ADK Playground artifact via tool_context.save_artifact,
+    and uploads the image bytes directly to Google Cloud Storage, returning the public HTTPS URL.
+
+    Args:
+        prompt: Descriptive prompt for the image (e.g. 'Modern social media ad image for an AI developer platform, sleek lighting, futuristic vibe').
+        campaign_id: ID or name of the marketing campaign (default: 'general').
+        tool_context: ADK ToolContext injected automatically by the runtime.
+
+    Returns:
+        A dictionary containing the public image URL, bucket object name, and generation status.
+    """
+    from google import genai
+    from google.genai import types
+
+    clean_campaign = re.sub(r"[^a-zA-Z0-9_-]", "", campaign_id) or "general"
+    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+    unique_suffix = uuid.uuid4().hex[:6]
+    filename = f"{clean_campaign}_{timestamp}_{unique_suffix}.png"
+    object_name = f"campaign_images/{filename}"
+
+    try:
+        # Client initialized with Vertex AI in the global region
+        client = genai.Client(vertexai=True, project=PROJECT_ID, location="global")
+        response = client.models.generate_content(
+            model="gemini-3.1-flash-lite-image",
+            contents=[prompt],
+        )
+
+        image_part: Optional[types.Part] = None
+        for part in response.parts:
+            if part.inline_data:
+                image_part = part
+                break
+
+        if not image_part or not image_part.inline_data:
+            return {
+                "error": "No image data was returned by the gemini-3.1-flash-lite-image model.",
+                "prompt": prompt,
+            }
+
+        image_bytes = image_part.inline_data.data
+        mime_type = image_part.inline_data.mime_type or "image/png"
+
+        # (1) Save with tool_context.save_artifact so it shows in Playground's Artifacts panel
+        if tool_context is not None and hasattr(tool_context, "save_artifact"):
+            try:
+                artifact_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+                tool_context.save_artifact(filename=filename, artifact=artifact_part)
+            except Exception as art_err:
+                # Non-fatal if context artifact saving fails
+                pass
+
+        # (2) Upload image bytes to public Cloud Storage bucket
+        storage_client = get_storage_client()
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(object_name)
+        blob.upload_from_string(image_bytes, content_type=mime_type)
+
+        public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{object_name}"
+
+        return {
+            "status": "success",
+            "campaign_id": campaign_id,
+            "filename": filename,
+            "public_url": public_url,
+            "gcs_uri": f"gs://{BUCKET_NAME}/{object_name}",
+            "prompt": prompt,
+        }
+    except Exception as e:
+        return {
+            "error": f"Failed to generate campaign image: {str(e)}",
+            "prompt": prompt,
+        }
+

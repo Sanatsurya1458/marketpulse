@@ -26,7 +26,7 @@ from .campaign_tools import (
     save_campaign,
     update_campaign_status,
 )
-from .creative_tools import generate_ad_creative
+from .creative_tools import generate_ad_creative, generate_campaign_image
 from .intelligence_tools import (
     fetch_industry_trends,
     search_competitor_serp,
@@ -62,10 +62,11 @@ creative_agent = Agent(
     ),
     instruction=(
         "You are the Creative Designer specialist for MarketPulse. "
-        "You generate eye-catching digital marketing ad banners and visuals, saving them directly "
-        "to public Cloud Storage and returning the public image URLs."
+        "You generate marketing visuals, campaign concept art, and digital ad banners "
+        "using gemini-3.1-flash-lite-image (via generate_campaign_image), saving artifacts "
+        "and uploading images directly to public Cloud Storage for web embedding."
     ),
-    tools=[generate_ad_creative],
+    tools=[generate_campaign_image, generate_ad_creative],
 )
 
 analyst_agent = Agent(
@@ -163,6 +164,7 @@ root_agent = Agent(
         update_campaign_status,
         scan_website_url,
         scan_local_codebase,
+        generate_campaign_image,
         generate_ad_creative,
         search_competitor_serp,
         fetch_industry_trends,
