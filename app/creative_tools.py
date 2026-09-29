@@ -243,3 +243,106 @@ def generate_campaign_image(
             "prompt": prompt,
         }
 
+
+def generate_campaign_video(
+    prompt: str,
+    campaign_id: str = "general",
+    tool_context: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Generates a short promotional or marketing video using Google's Omni model (gemini-omni-flash-preview).
+
+    Saves the generated video as an ADK Playground artifact via tool_context.save_artifact,
+    and uploads the video bytes directly to the public Cloud Storage bucket, returning the public HTTPS URL.
+
+    Args:
+        prompt: Descriptive text prompt for the video (e.g. 'A sleek 5-second 3D motion graphic teaser of MarketPulse AI marketing analytics dashboard with neon pulses').
+        campaign_id: ID or name of the marketing campaign (default: 'general').
+        tool_context: ADK ToolContext injected automatically by the runtime.
+
+    Returns:
+        A dictionary containing the public video URL (https://storage.googleapis.com/<bucket>/<object>), bucket URI, and generation status.
+    """
+    import base64
+    from google import genai
+    from google.genai import types
+
+    clean_campaign = re.sub(r"[^a-zA-Z0-9_-]", "", campaign_id) or "general"
+    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+    unique_suffix = uuid.uuid4().hex[:6]
+    filename = f"{clean_campaign}_{timestamp}_{unique_suffix}.mp4"
+    object_name = f"campaign_videos/{filename}"
+
+    try:
+        # Initialized with Vertex AI in the global region
+        client = genai.Client(vertexai=True, project=PROJECT_ID, location="global")
+        interaction = client.interactions.create(
+            model="gemini-omni-flash-preview",
+            input=prompt,
+        )
+
+        video_bytes: Optional[bytes] = None
+        mime_type = "video/mp4"
+
+        if hasattr(interaction, "output_video") and interaction.output_video:
+            data = getattr(interaction.output_video, "data", None)
+            if data:
+                if isinstance(data, str):
+                    video_bytes = base64.b64decode(data)
+                elif isinstance(data, (bytes, bytearray)):
+                    video_bytes = bytes(data)
+            out_mime = getattr(interaction.output_video, "mime_type", None)
+            if out_mime:
+                mime_type = out_mime
+
+        if not video_bytes and hasattr(interaction, "steps"):
+            for step in interaction.steps:
+                content = getattr(step, "content", None) or []
+                for item in content:
+                    if getattr(item, "type", None) == "video" and hasattr(item, "data") and item.data:
+                        vdata = item.data
+                        video_bytes = base64.b64decode(vdata) if isinstance(vdata, str) else bytes(vdata)
+                        if hasattr(item, "mime_type") and item.mime_type:
+                            mime_type = item.mime_type
+                        break
+                if video_bytes:
+                    break
+
+        if not video_bytes:
+            return {
+                "error": "No video data was returned by the gemini-omni-flash-preview model.",
+                "status": getattr(interaction, "status", "unknown"),
+                "prompt": prompt,
+            }
+
+        # (1) Save with tool_context.save_artifact so it shows up in the Playground's Artifacts panel
+        if tool_context is not None and hasattr(tool_context, "save_artifact"):
+            try:
+                artifact_part = types.Part.from_bytes(data=video_bytes, mime_type=mime_type)
+                tool_context.save_artifact(filename=filename, artifact=artifact_part)
+            except Exception as art_err:
+                pass
+
+        # (2) Upload video bytes to the public Cloud Storage bucket
+        storage_client = get_storage_client()
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(object_name)
+        blob.upload_from_string(video_bytes, content_type=mime_type)
+
+        public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{object_name}"
+
+        return {
+            "status": "success",
+            "campaign_id": campaign_id,
+            "filename": filename,
+            "public_url": public_url,
+            "gcs_uri": f"gs://{BUCKET_NAME}/{object_name}",
+            "mime_type": mime_type,
+            "prompt": prompt,
+        }
+    except Exception as e:
+        return {
+            "error": f"Failed to generate campaign video: {str(e)}",
+            "prompt": prompt,
+        }
+
+

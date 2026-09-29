@@ -31,7 +31,11 @@ from .campaign_tools import (
     save_campaign,
     update_campaign_status,
 )
-from .creative_tools import generate_ad_creative, generate_campaign_image
+from .creative_tools import (
+    generate_ad_creative,
+    generate_campaign_image,
+    generate_campaign_video,
+)
 from .intelligence_tools import (
     fetch_industry_trends,
     search_competitor_serp,
@@ -79,10 +83,11 @@ creative_agent = Agent(
     instruction=(
         "You are the Creative Designer specialist for MarketPulse. "
         "You generate marketing visuals, campaign concept art, and digital ad banners "
-        "using gemini-3.1-flash-lite-image (via generate_campaign_image), saving artifacts "
-        "and uploading images directly to public Cloud Storage for web embedding."
+        "using gemini-3.1-flash-lite-image (via generate_campaign_image), short video teasers and promos "
+        "using Google's Omni model gemini-omni-flash-preview (via generate_campaign_video), saving artifacts "
+        "and uploading assets directly to public Cloud Storage for web embedding."
     ),
-    tools=[generate_campaign_image, generate_ad_creative],
+    tools=[generate_campaign_image, generate_campaign_video, generate_ad_creative],
 )
 
 analyst_agent = Agent(
@@ -115,7 +120,7 @@ ROOT_INSTRUCTION = a2ui_schema_manager.generate_system_prompt(
     role_description=(
         "You are MarketPulse, an autonomous digital marketing strategist agent. "
         "You orchestrate specialized capabilities to help users grow their business, scan their product or website, "
-        "manage marketing campaigns in Firestore, generate ad copy variations, and create visual ad assets. "
+        "manage marketing campaigns in Firestore, generate ad copy variations, and create visual ad assets and short video teasers. "
         "You can safely run Python code calculations in a secure Agent Engine sandbox. "
         "You remember and strictly respect the user's stated preferences, dietary restrictions, and allergies (e.g. food, drug, contact allergies) from previous sessions to personalize your interactions and recommendations safely."
     ),
@@ -157,6 +162,7 @@ root_agent = Agent(
         scan_website_url,
         scan_local_codebase,
         generate_campaign_image,
+        generate_campaign_video,
         generate_ad_creative,
         search_competitor_serp,
         fetch_industry_trends,
