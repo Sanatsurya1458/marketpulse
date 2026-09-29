@@ -15,9 +15,11 @@
 """MarketPulse: Autonomous Digital Marketing & Growth Agent."""
 
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
 from google.adk.apps import App
 from google.adk.code_executors import AgentEngineSandboxCodeExecutor
 from google.adk.models import Gemini
+from google.adk.tools.preload_memory_tool import PreloadMemoryTool
 from google.genai import types
 
 from .a2ui_utils import a2ui_callback
@@ -36,10 +38,17 @@ from .intelligence_tools import (
 from .scanner_tools import scan_local_codebase, scan_website_url
 
 MODEL = "gemini-2.5-flash"
+MEMORY_BANK_ID = "3336127185881661440"
 SANDBOX_RESOURCE_NAME = "projects/307546545107/locations/us-east1/reasoningEngines/3336127185881661440/sandboxEnvironments/7972013455236399104"
 
 # Code executor backed by Agent Platform sandbox
 code_executor = AgentEngineSandboxCodeExecutor(sandbox_resource_name=SANDBOX_RESOURCE_NAME)
+
+
+# Memory generation callback: extracts and stores durable facts/preferences across turns
+async def generate_memories_callback(callback_context: CallbackContext):
+    await callback_context.add_session_to_memory()
+    return None
 
 # ==========================================
 # Specialized Sub-Agents
@@ -165,6 +174,7 @@ root_agent = Agent(
     ),
     instruction=ROOT_INSTRUCTION,
     tools=[
+        PreloadMemoryTool(),
         list_campaigns,
         get_campaign,
         save_campaign,
@@ -180,6 +190,7 @@ root_agent = Agent(
     code_executor=code_executor,
     sub_agents=[profiler_agent, creative_agent, analyst_agent],
     after_model_callback=a2ui_callback,
+    after_agent_callback=generate_memories_callback,
 )
 
 app = App(

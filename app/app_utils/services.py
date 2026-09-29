@@ -67,6 +67,35 @@ def get_artifact_service():
     return InMemoryArtifactService()
 
 
+MEMORY_SERVICE_URI = "shared://memory"
+
+
+@functools.cache
+def get_memory_service():
+    """Process-wide memory service backed by Vertex AI Memory Bank."""
+    from google.adk.memory import VertexAiMemoryBankService
+
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT") or "qwiklabs-gcp-04-318fdaa34ac1"
+    location = (
+        os.environ.get("GOOGLE_CLOUD_AGENT_ENGINE_LOCATION")
+        or os.environ.get("GOOGLE_CLOUD_LOCATION")
+        or "us-east1"
+    )
+    agent_engine_id = (
+        os.environ.get("GOOGLE_CLOUD_AGENT_ENGINE_ID")
+        or os.environ.get("MEMORY_BANK_ID")
+        or "3336127185881661440"
+    )
+    return VertexAiMemoryBankService(
+        project=project,
+        location=location,
+        agent_engine_id=agent_engine_id,
+    )
+
+
 _registry = get_service_registry()
 _registry.register_session_service("shared", lambda uri, **kw: get_session_service())
 _registry.register_artifact_service("shared", lambda uri, **kw: get_artifact_service())
+_registry.register_memory_service("shared", lambda uri, **kw: get_memory_service())
+
+
