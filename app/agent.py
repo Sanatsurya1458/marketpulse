@@ -42,6 +42,7 @@ from .intelligence_tools import (
     simulate_campaign_roi,
 )
 from .scanner_tools import scan_local_codebase, scan_website_url
+from .social_tools import publish_social_post, get_social_publication_history
 
 MODEL = "gemini-2.5-flash"
 MEMORY_BANK_ID = "3336127185881661440"
@@ -87,7 +88,13 @@ creative_agent = Agent(
         "using Google's Omni model gemini-omni-flash-preview (via generate_campaign_video), saving artifacts "
         "and uploading assets directly to public Cloud Storage for web embedding."
     ),
-    tools=[generate_campaign_image, generate_campaign_video, generate_ad_creative],
+    tools=[
+        generate_campaign_image,
+        generate_campaign_video,
+        generate_ad_creative,
+        publish_social_post,
+        get_social_publication_history,
+    ],
 )
 
 analyst_agent = Agent(
@@ -167,6 +174,8 @@ root_agent = Agent(
         search_competitor_serp,
         fetch_industry_trends,
         simulate_campaign_roi,
+        publish_social_post,
+        get_social_publication_history,
     ],
     code_executor=code_executor,
     sub_agents=[profiler_agent, creative_agent, analyst_agent],
