@@ -1,104 +1,87 @@
-# 🚀 MarketPulse — Autonomous Digital Marketing & Growth Agent
+# MarketPulse: Autonomous Digital Marketing & Growth Agent
 
-> An intelligent, multi-agent AI system built on Google's Agent Development Kit (ADK) and Gemini 2.5. MarketPulse scans websites or codebases, manages marketing campaigns with Firestore persistence, generates visual ad creatives via Cloud Storage, surfaces real-time market trends, and models financial ROI/CAC metrics.
+MarketPulse is a multi-agent digital marketing strategist built on the Google Agent Development Kit (ADK) and deployed to Google Cloud Agent Platform. It coordinates specialized sub-agents to scan websites or codebases, manage marketing campaign catalogs, forecast ROI funnels, generate visual ad creative banners and short promo videos, and retain persistent memory across user sessions.
 
----
-
-## 🌟 Highlights & Capabilities
-
-- **🔍 Automated Website & Codebase Profiler**
-  - Live URL scanner (`scan_website_url`) extracts `<title>`, OpenGraph data, headings, and value propositions.
-  - Local repository scanner (`scan_local_codebase`) inspects `README`, `package.json`, and project configs to profile apps.
-- **📊 Firestore Campaign Backend**
-  - Manages active, draft, and paused marketing campaigns in Google Cloud Firestore.
-  - Complete read/write/update toolset (`list_campaigns`, `get_campaign`, `save_campaign`, `update_campaign_status`).
-- **🎨 Visual Ad Creative Generator**
-  - Generates high-resolution ad banners with custom headlines, brand badges, and call-to-action hooks.
-  - Automatically uploads to a public Google Cloud Storage bucket (`marketpulse-assets-...`) with public HTTPS URLs.
-- **📈 Market Intelligence & Trend Discovery**
-  - Queries live Hacker News trends and community discussions via public APIs to spot viral narratives and sentiment.
-  - Competitor SERP search tool (`search_competitor_serp`) extracts real-world search headlines and competitor messaging.
-- **🧮 Financial ROI & CAC Funnel Simulator**
-  - Computes clicks, conversions, Customer Acquisition Cost (CAC), and Return on Ad Spend (ROAS %) across channels (Google Search, Meta, LinkedIn, Twitter/X).
-- **📱 A2UI Rich UI Cards**
-  - Emits A2UI v0.8 schemas natively rendered as visual cards, comparison columns, and embedded images.
+![MarketPulse Demo](assets/demo.gif)
 
 ---
 
-## 🏛️ Multi-Agent Architecture
+## What the Agent Actually Does
 
-```
-                       ┌─────────────────────────────────────────┐
-                       │               MarketPulse               │
-                       │           (root_agent / Gemini)          │
-                       └─┬──────────────────┬──────────────────┬─┘
-                         │                  │                  │
-                         ▼                  ▼                  ▼
-             ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-             │  Profiler Agent  │ │  Creative Agent  │ │  Analyst Agent   │
-             ├──────────────────┤ ├──────────────────┤ ├──────────────────┤
-             │ • Web URL Fetch  │ │ • Ad Banners     │ │ • SERP Search    │
-             │ • Local Repo     │ │ • GCS Upload     │ │ • HN Trends      │
-             │   Inspection     │ │ • Public CDN     │ │ • ROI Simulation │
-             └──────────────────┘ └──────────────────┘ └──────────────────┘
-```
+MarketPulse implements an orchestrator-worker multi-agent architecture with three specialized sub-agents and a centralized root agent:
 
----
-
-## 📁 Repository Structure
-
-```
-marketpulse/
-├── app/
-│   ├── agent.py                 # Multi-agent definitions, instructions & A2UI callback
-│   ├── campaign_tools.py        # Firestore database read/write/status tools
-│   ├── scanner_tools.py         # Live URL and local codebase profiling
-│   ├── creative_tools.py        # Ad banner generator & Cloud Storage uploader
-│   ├── intelligence_tools.py    # SERP intelligence, HN trends & ROI simulation
-│   ├── a2ui_utils.py            # A2UI v0.8 message rewrapping callback
-│   └── fast_api_app.py          # FastAPI application server
-├── seed_firestore.py            # Script to seed initial marketing campaigns
-├── agents-cli-manifest.yaml     # Google Agents CLI deployment manifest
-├── pyproject.toml               # Python package configuration & dependencies
-└── README.md                    # Project documentation
-```
+### 1. Specialized Sub-Agents & Capabilities
+* **`profiler_agent` (Website & Codebase Profiler)**:
+  * Scans public web URLs (`scan_website_url`) to extract meta tags, headlines, key product features, and target customer profiles.
+  * Inspects local project repositories (`scan_local_codebase`) reading `package.json`, `pyproject.toml`, and `README.md` to profile technical products.
+* **`creative_agent` (Creative Designer Specialist)**:
+  * Renders digital marketing banners (`generate_ad_creative`) with gradient themes and value propositions.
+  * Generates visual concepts and marketing hero assets using `gemini-3.1-flash-lite-image` (`generate_campaign_image`).
+  * Produces short video teasers and promos using Google's Omni model `gemini-omni-flash-preview` in the global region (`generate_campaign_video`).
+  * Saves generated images and videos directly as ADK Playground artifacts (`tool_context.save_artifact`) and uploads them to public Google Cloud Storage.
+* **`analyst_agent` (Market Intelligence & Growth Analyst)**:
+  * Scrapes live competitor search results and SERP messaging trends (`search_competitor_serp`).
+  * Fetches real-time industry discussions, tech news, and developer sentiment from Hacker News (`fetch_industry_trends`).
+  * Simulates campaign budget models, forecasting impressions, CPC, CAC, and conversion funnels (`simulate_campaign_roi`).
+  * Runs complex Python models inside a secure **Agent Engine Sandbox** (`AgentEngineSandboxCodeExecutor`).
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## Google Cloud Services Wired Up
 
-1. **Python & uv**:
+The agent code directly interacts with the following Google Cloud services and models:
+
+| Service / Component | Purpose in MarketPulse | Implementation Reference |
+| :--- | :--- | :--- |
+| **Vertex AI Agent Engine (Memory Bank)** | Cross-session long-term memory for remembering user preferences, brand tone, and constraints. | [`PreloadMemoryTool`](app/agent.py) & `generate_memories_callback` via `agentengine://<MEMORY_BANK_ID>` |
+| **Cloud Firestore** | Persistent database storage for marketing campaign records, status toggles, target channels, and budgets. | [`app/campaign_tools.py`](app/campaign_tools.py) querying collection `marketing_campaigns` |
+| **Cloud Storage** | Public object storage for ad banners, generated creatives, and demo videos. | [`app/creative_tools.py`](app/creative_tools.py) uploading to bucket `marketpulse-assets-<PROJECT_ID>` |
+| **Vertex AI Generative AI** | Core reasoning, image synthesis, and short video generation. | `gemini-2.5-flash` (agent model), `gemini-3.1-flash-lite-image` (images), and `gemini-omni-flash-preview` (video) |
+| **Agent Engine Code Sandbox** | Isolated remote Python sandbox execution for marketing ROI and conversion calculations. | [`AgentEngineSandboxCodeExecutor`](app/agent.py) |
+| **A2UI (v0.8 Basic Catalog)** | Dynamic server-driven UI cards, rows, columns, and embedded images. | [`a2ui_callback`](app/a2ui_utils.py) and frontend A2UI client renderer |
+
+---
+
+## Planned / Roadmap (Not Yet Implemented)
+* Automated live ad placement via Google Ads / Meta Ads API integrations (planned, not yet implemented).
+* Continuous background schedule cron workers for automatic competitor price alerting (planned, not yet implemented).
+
+---
+
+## Local Setup & Development
+
+### Prerequisites
+* Python 3.10+
+* `uv` package and project manager
+* Google Cloud CLI (`gcloud`) authenticated to your GCP project with permissions for Vertex AI, Firestore, and Cloud Storage.
+
+### Installation
+
+1. **Clone the repository**:
    ```bash
-   # uv package manager handles all environments and dependencies
+   git clone https://github.com/Sanatsurya1458/marketpulse.git
+   cd marketpulse
+   ```
+
+2. **Authenticate with Google Cloud**:
+   ```bash
+   gcloud auth login
+   gcloud auth application-default login
+   gcloud config set project <YOUR_PROJECT_ID>
+   ```
+
+3. **Install dependencies**:
+   ```bash
    uv sync
    ```
 
-2. **Google Cloud Services**:
-   - Google Cloud Project with Firestore & Cloud Storage enabled
-   - Authenticated with Google Cloud (`gcloud auth application-default login`)
-
-3. **Seed Firestore Database**:
+4. **Launch the local ADK Web Playground**:
    ```bash
-   uv run python seed_firestore.py
+   uv run adk web . --port 8080 --reload_agents --memory_service_uri=agentengine://<YOUR_MEMORY_BANK_ID>
    ```
 
----
-
-## 💻 Running Locally
-
-### Interactive ADK Web Development UI
-Launch the local ADK playground to test multi-turn conversations and inspect A2UI cards:
-
-```bash
-uv run adk web --port 8080 --allow_origins "*" --reload_agents
-```
-
-### FastAPI Server
-```bash
-uv run uvicorn app.fast_api_app:app --host 0.0.0.0 --port 8000 --reload
-```
-
----
-
-## 📄 License
-Licensed under the Apache License, Version 2.0.
+5. **Run the Custom Frontend Proxy (Optional)**:
+   ```bash
+   cd frontend
+   uv run uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
