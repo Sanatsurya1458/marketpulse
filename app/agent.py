@@ -14,6 +14,8 @@
 
 """MarketPulse: Autonomous Digital Marketing & Growth Agent."""
 
+from a2ui.basic_catalog.provider import BasicCatalog
+from a2ui.schema.manager import A2uiSchemaManager
 from google.adk.agents import Agent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.apps import App
@@ -104,68 +106,40 @@ analyst_agent = Agent(
 # Root Orchestrator Agent
 # ==========================================
 
-ROOT_INSTRUCTION = """You are MarketPulse, an autonomous digital marketing strategist agent.
-You orchestrate specialized capabilities to help users grow their business, scan their product or website,
-manage marketing campaigns, generate ad copy variations, and create visual ad assets.
-You can safely run Python code calculations in a secure Agent Engine sandbox.
+a2ui_schema_manager = A2uiSchemaManager(
+    version="0.8",
+    catalogs=[BasicCatalog.get_config("0.8")],
+)
 
-When appropriate to present campaigns, product summaries, or creative banners visually, emit A2UI v0.8 components:
-Keep every surface flat and clean: ONE Card > ONE Column > Text and Row components.
-Supported components: Card, Column, Row, Text, Image, Divider.
-When displaying generated ad creatives, include an Image component with the exact public https:// URL.
-Example A2UI surface:
-[
-  {
-    "beginRendering": {
-      "surfaceId": "marketpulse-surface",
-      "root": "root-card"
-    }
-  },
-  {
-    "surfaceUpdate": {
-      "surfaceId": "marketpulse-surface",
-      "components": [
-        {
-          "id": "root-card",
-          "component": {
-            "Card": {
-              "child": "main-col"
-            }
-          }
-        },
-        {
-          "id": "main-col",
-          "component": {
-            "Column": {
-              "children": ["title-text", "body-text"]
-            }
-          }
-        },
-        {
-          "id": "title-text",
-          "component": {
-            "Text": {
-              "text": {"literalString": "MarketPulse Strategy"},
-              "usageHint": "h1"
-            }
-          }
-        },
-        {
-          "id": "body-text",
-          "component": {
-            "Text": {
-              "text": {"literalString": "Campaign summary and recommendations here."},
-              "usageHint": "body"
-            }
-          }
-        }
-      ]
-    }
-  }
-]
-Always return actionable, high-impact marketing recommendations.
-You remember and strictly respect the user's stated preferences, dietary restrictions, and allergies (e.g. food, drug, contact allergies) from previous sessions to personalize your interactions and recommendations safely.
-"""
+ROOT_INSTRUCTION = a2ui_schema_manager.generate_system_prompt(
+    role_description=(
+        "You are MarketPulse, an autonomous digital marketing strategist agent. "
+        "You orchestrate specialized capabilities to help users grow their business, scan their product or website, "
+        "manage marketing campaigns in Firestore, generate ad copy variations, and create visual ad assets. "
+        "You can safely run Python code calculations in a secure Agent Engine sandbox. "
+        "You remember and strictly respect the user's stated preferences, dietary restrictions, and allergies (e.g. food, drug, contact allergies) from previous sessions to personalize your interactions and recommendations safely."
+    ),
+    workflow_description="Analyze the marketing request, coordinate tools, and return structured UI when appropriate.",
+    ui_description=(
+        "Keep every surface tiny and flat: ONE Card > ONE Column > a few Text rows. "
+        "Never nest a Card inside a Card. "
+        "Use ONLY these components: Card, Column, Row, Text, and Image. Do not use "
+        "Table or Heading (unsupported), or Buttons, actions, or forms (they do "
+        "nothing in adk web). "
+        "You may include one Image component, but only when you have a public https "
+        "URL for the image (for example the URL an image tool returns after uploading "
+        "to a public bucket). Set the Image url to that exact https link, for example "
+        '{"Image": {"url": {"literalString": "https://..."}}}. Never point an '
+        "Image at a bare filename, an artifact name, or a non-http(s) path. If you do "
+        "not have a public URL, add a short Text line noting the image instead. "
+        "No markdown in text; use the usageHint property ('h1', 'h2', 'body') for "
+        "headings and emphasis. "
+        "Output ONLY the raw A2UI JSON array — no prose, and never wrap it in "
+        "<a2a_datapart_json> tags or 'kind'/'data'/'metadata' objects."
+    ),
+    include_schema=True,
+    include_examples=True,
+)
 
 root_agent = Agent(
     name="root_agent",
