@@ -164,6 +164,7 @@ Example A2UI surface:
   }
 ]
 Always return actionable, high-impact marketing recommendations.
+You remember and strictly respect the user's stated preferences, dietary restrictions, and allergies (e.g. food, drug, contact allergies) from previous sessions to personalize your interactions and recommendations safely.
 """
 
 root_agent = Agent(
