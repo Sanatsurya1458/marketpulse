@@ -1,4 +1,4 @@
-# My Digital Identity — Product Demo Video Generator
+# MarketPulse: Product Demo Video Generator — Acceptance Report
 
 ## Architecture & Implementation Overview
 

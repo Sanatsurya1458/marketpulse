@@ -1,4 +1,4 @@
-# Product Demo Video Generator — Workflow & Pipeline Architecture
+# MarketPulse: Product Demo Video Generator — Workflow & Pipeline Architecture
 
 ## 1. Executive Summary
 

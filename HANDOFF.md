@@ -1,4 +1,4 @@
-# Project Handoff: My Digital Identity Demo Video Generator & Marketing Suite
+# MarketPulse: Client Project Handoff & Marketing Suite
 
 ## 1. Project Overview & Current State
 
