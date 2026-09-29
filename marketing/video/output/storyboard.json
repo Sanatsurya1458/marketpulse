@@ -1,0 +1,76 @@
+{
+  "concept": "AI ATS Resume Builder & Portfolio Showcase",
+  "target_audience": "Software Engineers, Tech Professionals, Job Seekers",
+  "journey_stage": "Consideration & Conversion",
+  "brand": {
+    "name": "My Digital Identity",
+    "tagline": "YOUR IDENTITY. YOUR POWER.",
+    "website": "https://mydigitalidentity.co.in"
+  },
+  "scenes": [
+    {
+      "id": "scene_1_hook",
+      "name": "Hook: Career Dilemma",
+      "narration": "Still sending the same generic resume to every job? Meet My Digital Identity.",
+      "step": "stepUpload",
+      "focus_selector": "#dropzone",
+      "cursor_target": "#btnUploadResume",
+      "action": "click",
+      "sfx": "click",
+      "zoom": 1.15,
+      "audio_info": {
+        "audio_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_0.mp3",
+        "sub_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_0.srt",
+        "duration": 6.528
+      }
+    },
+    {
+      "id": "scene_2_ats",
+      "name": "ATS Score & Optimization",
+      "narration": "Instantly analyze your ATS score and get actionable keyword recommendations to beat the screening bots.",
+      "step": "stepAts",
+      "focus_selector": "#atsScoreCard",
+      "cursor_target": "#atsScoreNum",
+      "action": "spotlight",
+      "sfx": "chime",
+      "zoom": 1.25,
+      "audio_info": {
+        "audio_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_1.mp3",
+        "sub_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_1.srt",
+        "duration": 6.432
+      }
+    },
+    {
+      "id": "scene_3_tailor",
+      "name": "AI Job Tailoring",
+      "narration": "Our AI transforms your experience into tailored, high-impact bullet points for your target roles.",
+      "step": "stepTailor",
+      "focus_selector": "#tailoredPane",
+      "cursor_target": "#tailoredPane",
+      "action": "spotlight",
+      "sfx": "click",
+      "zoom": 1.2,
+      "audio_info": {
+        "audio_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_2.mp3",
+        "sub_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_2.srt",
+        "duration": 6.12
+      }
+    },
+    {
+      "id": "scene_4_portfolio",
+      "name": "Digital Portfolio & CTA",
+      "narration": "And generates a live, shareable portfolio. My Digital Identity. Your identity, your power. Try it free at mydigitalidentity.co.in.",
+      "step": "stepPortfolio",
+      "focus_selector": "#portfolioHero",
+      "cursor_target": "#headerCta",
+      "action": "click",
+      "sfx": "chime",
+      "zoom": 1.15,
+      "audio_info": {
+        "audio_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_3.mp3",
+        "sub_path": "/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_3.srt",
+        "duration": 12.6
+      }
+    }
+  ]
+}

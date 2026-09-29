@@ -1,0 +1,4 @@
+file '/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_0.mp3'
+file '/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_1.mp3'
+file '/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_2.mp3'
+file '/config/Desktop/BuildWithGemini/marketpulse/marketing/video/output/scene_3.mp3'
