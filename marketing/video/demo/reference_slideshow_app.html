@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Digital Identity — Reference UI Flow</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0B0E1A;
+      overflow: hidden;
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+      background-size: cover;
+      background-position: top center;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: scale(1.0);
+    }
+    .slide.zoom {
+      transform: scale(1.08);
+    }
+
+    /* Top Brand Bar Overlay */
+    .brand-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.25rem 2.5rem;
+      background: linear-gradient(180deg, rgba(11, 14, 26, 0.95) 0%, rgba(11, 14, 26, 0) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+    }
+    .badge-icon {
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    /* Lower Third Caption */
+    .caption-banner {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 3rem;
+      background: rgba(19, 24, 44, 0.9);
+      border: 1px solid #312E81;
+      backdrop-filter: blur(16px);
+      padding: 1.2rem 2.2rem;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      max-width: 850px;
+    }
+    .caption-headline {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #38BDF8;
+      margin-bottom: 0.25rem;
+    }
+    .caption-sub {
+      font-size: 1.05rem;
+      color: #E2E8F0;
+    }
+
+    /* Virtual Cursor */
+    #cursor {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      z-index: 999999;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-overlay">
+    <div class="logo-badge">
+      <div class="badge-icon">⚡</div>
+      <span>My Digital Identity</span>
+    </div>
+    <div style="color: #94A3B8; font-size: 1.1rem; font-weight: 600;">YOUR IDENTITY. YOUR POWER.</div>
+  </div>
+
+  <!-- Slides with real production platform screenshots -->
+  <div class="slide active" id="slide0" style="background-image: url('../assets/live_platform_screenshots/01_hero.png');"></div>
+  <div class="slide" id="slide1" style="background-image: url('../assets/live_platform_screenshots/02_features.png');"></div>
+  <div class="slide" id="slide2" style="background-image: url('../assets/live_platform_screenshots/03_ats_section.png');"></div>
+  <div class="slide" id="slide3" style="background-image: url('../assets/live_platform_screenshots/04_portfolio_themes.png');"></div>
+  <div class="slide" id="slide4" style="background-image: url('../assets/live_platform_screenshots/05_cta_footer.png');"></div>
+
+  <div class="caption-banner" id="captionBox">
+    <div class="caption-headline" id="captionTitle">AI-Powered Career Platform</div>
+    <div class="caption-sub" id="captionText">Build an ATS-friendly resume and a live portfolio in minutes.</div>
+  </div>
+
+  <svg id="cursor" viewBox="0 0 24 24" style="left: 400px; top: 400px;">
+    <path fill="#FFFFFF" stroke="#000000" stroke-width="1.5" d="M3 3l7 18 3-7 7-3L3 3z"/>
+  </svg>
+
+  <script>
+    function showSlide(index, title, subtext, zoom=false) {
+      document.querySelectorAll('.slide').forEach((s, idx) => {
+        s.classList.remove('active');
+        s.classList.remove('zoom');
+        if (idx === index) {
+          s.classList.add('active');
+          if (zoom) setTimeout(() => s.classList.add('zoom'), 100);
+        }
+      });
+      document.getElementById('captionTitle').textContent = title;
+      document.getElementById('captionText').textContent = subtext;
+    }
+
+    function moveCursor(x, y) {
+      const c = document.getElementById('cursor');
+      c.style.left = x + 'px';
+      c.style.top = y + 'px';
+    }
+  </script>
+</body>
+</html>
